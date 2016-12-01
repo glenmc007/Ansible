@@ -1,0 +1,48 @@
+[root@acs ansible]# cat lamp.yml
+---
+- hosts: web
+  tasks:
+    - name: php installation
+      yum: name=php state=present
+    - name: php-mysql installation
+      yum: name=php-mysql state=present
+    - name: Apache installation
+      yum: name=httpd state=present
+    - name: Apache startup
+      service: name=httpd state=started enabled=yes
+
+- hosts: db
+  tasks:
+    - name: mariadb installation for mysql
+      yum: name=mariadb-server state=present
+    - name: mariadb startup
+      service: name=mariadb state=started enabled=yes
+
+    - name: installing repository
+      yum: name=epel-release state=present
+    - name: pip installer installation
+      yum: name=python-pip state=present
+
+    - name: installing patches
+      yum: name={{ item }} state=present
+      with_items:
+      - gcc
+      - mysql-devel
+      - python-devel
+      - python-setuptools
+
+    - name: Install the Python MySQLB module
+      pip: name=MySQL-python
+
+    - name: Create the flask database
+      mysql_db: name=flask_db state=present
+
+    - name: Create a test database
+      mysql_db: name=testDb
+                state=present
+
+    - name: Create a new user for connections
+      mysql_user: name=webapp
+                  password=mypassword
+                  priv=*.*:ALL state=present
+[root@acs ansible]#
